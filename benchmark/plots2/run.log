@@ -1,0 +1,27 @@
+/usr/lib64/python2.7/site-packages/matplotlib/font_manager.py:1331: UserWarning: findfont: Font family [u'lmodern'] not found. Falling back to DejaVu Sans
+  (prop.get_family(), self.defaultFamily[fontext]))
+Running 'alloc_free' for default malloc
+Running 'alloc_free' for jemalloc
+Running 'alloc_free' for nvm_malloc
+Running 'alloc_free' for nvm_malloc without fences
+Running 'alloc_free' for nvm_malloc without flushes
+Running 'alloc_free' for nvm_malloc without flushes or fences
+Running 'alloc_free_alloc' for default malloc
+Running 'alloc_free_alloc' for jemalloc
+Running 'alloc_free_alloc' for nvm_malloc
+Running 'alloc_free_alloc' for nvm_malloc without fences
+Running 'alloc_free_alloc' for nvm_malloc without flushes
+Running 'alloc_free_alloc' for nvm_malloc without flushes or fences
+Running 'fastalloc' for default malloc
+Running 'fastalloc' for jemalloc
+Running 'fastalloc' for nvm_malloc
+Running 'fastalloc' for nvm_malloc without fences
+Running 'fastalloc' for nvm_malloc without flushes
+Running 'fastalloc' for nvm_malloc without flushes or fences
+Running 'linkedlist' for default malloc
+Running 'linkedlist' for jemalloc
+Running 'linkedlist' for nvm_malloc
+Running 'linkedlist' for nvm_malloc without fences
+Running 'linkedlist' for nvm_malloc without flushes
+Running 'linkedlist' for nvm_malloc without flushes or fences
+Running 'recovery' for nvm_malloc

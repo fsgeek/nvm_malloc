@@ -22,7 +22,7 @@
 #define MAP_ANONYMOUS MAP_ANON
 #endif
 
-inline void error_and_exit(char *msg, ...) {
+void error_and_exit(char *msg, ...) {
     va_list args;
     va_start(args, msg);
     vfprintf(stderr, msg, args);

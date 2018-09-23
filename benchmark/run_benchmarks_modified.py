@@ -38,6 +38,7 @@ def runBenchmarkBinary(binary, parameters, with_jemalloc, miliseconds=False):
     env = {"LD_LIBRARY_PATH": os.path.join(os.getcwd(), "..")}
     elapsed = 0.0
     for i in range(5):
+	print(procString)
         proc = subprocess.Popen(procString, shell=True, stdout=subprocess.PIPE, env=env)
         elapsed += float(proc.stdout.read())/5
     return elapsed/1000 if miliseconds else elapsed
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     parser.add_argument("--run-linkedlist", action="store_true")
     parser.add_argument("--run-recovery", action="store_true")
     parser.add_argument("--threads-min", type=int, default=1)
-    parser.add_argument("--threads-max", type=int, default=10)
+    parser.add_argument("--threads-max", type=int, default=23)
     parser.add_argument("--payload-min", type=int, default=64)
     parser.add_argument("--payload-max", type=int, default=64)
     parser.add_argument("--has-clflushopt", action="store_true", default=True)
