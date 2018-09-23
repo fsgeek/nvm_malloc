@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
     workerTimes.resize(n_threads, 0);
     nvb::initialize("/mnt/pmfs/nvb", 0);
     nvb::execute_in_pool(worker, n_threads);
+    nvb::teardown();
     uint64_t avg = 0;
     for (auto t : workerTimes)
         avg += t;

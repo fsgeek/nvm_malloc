@@ -64,13 +64,27 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 #elif USE_NVM_MALLOC
     return nvm_initialize(workspace_path.c_str(), recover_if_possible);
 #elif USE_PMDK
-    static const char *path = "/mnt/pmem/pmdk-test";
+    static const char *path = "/mnt/pmfs/pmdk-test";
     static const char *layout_name = "bench";
     static const size_t pool_size = 1024 * 1024 * 1024; 
-	pcp = pmemcto_create(path, layout_name, pool_size, 0666);
 
-	if (NULL == pcp) {
-		pcp = pmemcto_open(path, layout_name);
+    while (NULL == pcp) {
+        pcp = pmemcto_open(path, layout_name);
+        
+        if (NULL != pcp) {
+            break;
+        }
+
+	if (EINVAL == errno) {
+	   // this is the sign of a corrupt file
+           (void) unlink(path);
+           break;
+        }
+
+        pcp = pmemcto_create(path, layout_name, pool_size, 0600);
+
+	// no matter what, we're done
+	break;
     }
 
     return (PMEMctopool *)0;
@@ -102,6 +116,7 @@ inline void* reserve(uint64_t n_bytes) {
 #elif USE_NVM_MALLOC
     return nvm_reserve(n_bytes);
 #elif USE_PMDK
+    assert(pcp != NULL);
     return pmemcto_malloc(pcp, (size_t) n_bytes);
 #elif USE_MAKALU
     return MAK_malloc(n_bytes);
