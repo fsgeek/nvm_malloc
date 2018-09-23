@@ -32,7 +32,7 @@ def getCacheFileName(binary, args, with_jemalloc):
                                                                       "true" if with_jemalloc else "false"))
 
 def runBenchmarkBinary(binary, parameters, with_jemalloc, miliseconds=False):
-    procString = "hwloc-bind node:1 " + os.path.join(os.getcwd(), "build", binary) + " " + " ".join([str(p) for p in parameters])
+    procString = "hwloc-bind node:0 " + os.path.join(os.getcwd(), "build", binary) + " " + " ".join([str(p) for p in parameters])
     if with_jemalloc:
         procString = "LD_PRELOAD=%s %s" % (JEMALLOC_PATH, procString)
     env = {"LD_LIBRARY_PATH": os.path.join(os.getcwd(), "..")}
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     parser.add_argument("--run-linkedlist", action="store_true")
     parser.add_argument("--run-recovery", action="store_true")
     parser.add_argument("--threads-min", type=int, default=1)
-    parser.add_argument("--threads-max", type=int, default=10)
+    parser.add_argument("--threads-max", type=int, default=23)
     parser.add_argument("--payload-min", type=int, default=64)
     parser.add_argument("--payload-max", type=int, default=64)
     parser.add_argument("--has-clflushopt", action="store_true", default=True)
