@@ -31,6 +31,9 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/*.h
 ulib-svn/lib/libulib.a:
 	cd ulib-svn; make release
 
+makalu_alloc/lib/libmakalu.a:
+	cd makalu_alloc; make
+
 clean:
 	@rm -f $(LIBNAME)
 	@rm -rf $(OBJDIR)
