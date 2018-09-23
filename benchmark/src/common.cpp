@@ -2,7 +2,7 @@
 
 namespace nvb {
 
-#if defined(USE_MALLOC) || defined(USE_PMDK)
+#if defined(USE_MALLOC) || defined(USE_PMDK) || defined(USE_MAKALU)
 object_table_t _object_table;
 #endif
 

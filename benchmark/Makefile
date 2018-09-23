@@ -19,6 +19,7 @@ $(BUILDDIR)/bench_recovery: $(SRCDIR)/bench_recovery.cpp $(SRCDIR)/common.h $(SR
 	@mkdir -p $(BUILDDIR)
 	$(CXX) $(CXXFLAGS) -DUSE_NVM_MALLOC -o $@ $< $(SRCDIR)/common.cpp $(LDFLAGS) $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) -DUSE_PMDK -o $@_pmdk $< $(SRCDIR)/common.cpp $(LDFLAGS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -DUSE_MAKALU -o $@_makalu $< $(SRCDIR)/common.cpp $(LDFLAGS) $(LDFLAGS)
 
 $(BUILDDIR)/%: $(SRCDIR)/%.cpp $(SRCDIR)/common.h $(SRCDIR)/common.cpp
 	@mkdir -p $(BUILDDIR)
@@ -30,7 +31,7 @@ $(BUILDDIR)/%: $(SRCDIR)/%.cpp $(SRCDIR)/common.h $(SRCDIR)/common.cpp
 	$(CXX) $(CXXFLAGS) -DUSE_NVM_MALLOC -o $@_nvm_nofence $(LDFLAGS)nofence $< $(SRCDIR)/common.cpp $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) -DUSE_NVM_MALLOC -o $@_nvm_none $(LDFLAGS)none $< $(SRCDIR)/common.cpp $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) -DUSE_PMDK -o $@_pmdk $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
-	$(CXX) $(CXXFLAGS) -DUSE_MAKALU -o $@_pmdk $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
+	$(CXX) $(CXXFLAGS) -DUSE_MAKALU -o $@_makalu $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
 
 clean:
 	@rm -rf $(BUILDDIR)
