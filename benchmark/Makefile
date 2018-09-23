@@ -1,8 +1,8 @@
 CXX ?= g++
-CXXFLAGS := -std=c++11 -Wall -Isrc -I../src
+CXXFLAGS := -std=c++11 -Wall -Isrc -I../src -I../makalu_alloc/include
 debug:   CXXFLAGS += -O0 -ggdb
 release: CXXFLAGS += -O3
-LDFLAGS := -L.. -ltbb -lpthread -lnvmmalloc
+LDFLAGS := -L.. -ltbb -lpthread -L../makalu_alloc/lib -lmakalu -lpmemcto -lpmem -lnvmmalloc
 
 SRCDIR := src
 BUILDDIR := build
@@ -30,8 +30,7 @@ $(BUILDDIR)/%: $(SRCDIR)/%.cpp $(SRCDIR)/common.h $(SRCDIR)/common.cpp
 	$(CXX) $(CXXFLAGS) -DUSE_NVM_MALLOC -o $@_nvm_nofence $(LDFLAGS)nofence $< $(SRCDIR)/common.cpp $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) -DUSE_NVM_MALLOC -o $@_nvm_none $(LDFLAGS)none $< $(SRCDIR)/common.cpp $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) -DUSE_PMDK -o $@_pmdk $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
-
-
+	$(CXX) $(CXXFLAGS) -DUSE_MAKALU -o $@_pmdk $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
 
 clean:
 	@rm -rf $(BUILDDIR)

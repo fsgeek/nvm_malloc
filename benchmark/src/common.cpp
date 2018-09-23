@@ -10,4 +10,40 @@ object_table_t _object_table;
 PMEMctopool *pcp;
 #endif
 
+#if defined(USE_MAKALU)
+void *pmem_baseaddr;
+void *pmem_curraddr;
+void *pmem_ret;
+size_t pmem_size;
+
+int __nvm_region_allocator(void** memptr, size_t alignment, size_t size)
+{
+    char* next;
+    char* res;
+    if (size < 0) return 1;
+
+    if (((alignment & (~alignment + 1)) != alignment)  ||    //should be multiple of 2
+        (alignment < sizeof(void*))) return 1; //should be atleast the size of void*
+    size_t aln_adj = (size_t) pmem_curraddr & (alignment - 1);
+
+    if (aln_adj != 0) {
+        pmem_curraddr = (void *) (((uintptr_t)pmem_curraddr) + (alignment - aln_adj));       
+    }
+
+    res = (char *)pmem_curraddr;
+    next = ((char *)pmem_curraddr) + size;
+    if ((uintptr_t) next > (uintptr_t) pmem_baseaddr + pmem_size){
+       printf("\n----Ran out of space in mmaped file-----\n");
+       assert(0);
+       return 1;
+    }
+    pmem_curraddr = next;
+    *memptr = res;
+    //printf("Current NVM Region Addr: %p\n", pmem_curraddr);
+
+    return 0;
+}
+
+#endif // USE_MAKALU
+
 }
