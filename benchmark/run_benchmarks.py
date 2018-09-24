@@ -39,7 +39,11 @@ def runBenchmarkBinary(binary, parameters, with_jemalloc, miliseconds=False):
     elapsed = 0.0
     for i in range(5):
         proc = subprocess.Popen(procString, shell=True, stdout=subprocess.PIPE, env=env)
-        elapsed += float(proc.stdout.read())/5
+	data = proc.stdout.read()
+        try:
+	    elapsed += float(data)/5
+	except ValueError:
+            print('return {} from command {}'.format(data, procString))
     return elapsed/1000 if miliseconds else elapsed
 
 def runBenchmark(binary, args, with_jemalloc=False):
@@ -109,6 +113,17 @@ def plotBenchmark(benchname, args):
         print "Running '%s' for nvm_malloc without flushes or fences" % benchname
         plt.plot(plotX, runBenchmark("bench_%s_nvm_none" % benchname, args), label="nvm\_malloc no fences/flushes", ls="-", marker="x", color="black")
 
+    # if selected, run pmdk_malloc
+    if args["with_pmdk"]:
+        print "Running '%s' for pmdk_malloc" % benchname
+        plt.plot(plotX, runBenchmark("bench_%s_pmdk" % benchname, args), label="pmdk\_malloc", ls="-", marker="*", color="black")
+
+    # if selected, run makalu_malloc
+    if args["with_makalu"]:
+        print "Running '%s' for makalu_malloc" % benchname
+        plt.plot(plotX, runBenchmark("bench_%s_makalu" % benchname, args), label="makalu\_malloc", ls="-", marker=">", color="black")
+
+    plt.legend(loc='upper left', prop={'size':10})
     plt.legend(loc='upper left', prop={'size':10})
     plt.savefig(os.path.join(os.getcwd(), "plots", "%s.pdf" % benchname), dpi=1000, bbox_inches="tight")
     plt.close()
@@ -140,13 +155,15 @@ if __name__ == "__main__":
     parser.add_argument("--threads-max", type=int, default=23)
     parser.add_argument("--payload-min", type=int, default=64)
     parser.add_argument("--payload-max", type=int, default=64)
-    parser.add_argument("--has-clflushopt", action="store_true", default=True)
+    parser.add_argument("--has-clflushopt", action="store_true")
     parser.add_argument("--has-clwb", action="store_true", default=True)
     parser.add_argument("--with-jemalloc", action="store_true", help="include a run with jemalloc in the benchmark", default=True)
-    parser.add_argument("--with-nofence", action="store_true", help="include a run with disabled fences", default=True)
-    parser.add_argument("--with-noflush", action="store_true", help="include a run with disabled flushes", default=True)
-    parser.add_argument("--with-none", action="store_true", help="include a run with disabled fences and flushes", default=True)
+    parser.add_argument("--with-nofence", action="store_true", help="include a run with disabled fences")
+    parser.add_argument("--with-noflush", action="store_true", help="include a run with disabled flushes")
+    parser.add_argument("--with-none", action="store_true", help="include a run with disabled fences and flushes",default=True)
     parser.add_argument("--ignore-cached", action="store_true")
+    parser.add_argument("--with-pmdk", action="store_true", default=True)
+    parser.add_argument("--with-makalu", action="store_true")
     args = vars(parser.parse_args())
     if args["payload_max"] < args["payload_min"]:
         args["payload_max"] = args["payload_min"]

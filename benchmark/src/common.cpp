@@ -46,4 +46,23 @@ int __nvm_region_allocator(void** memptr, size_t alignment, size_t size)
 
 #endif // USE_MAKALU
 
+void* nvb_abs(void *rel_ptr, void *base_ptr) {
+    void *r = NULL;
+
+    if (NULL != rel_ptr) {
+	r = (void *)(((uintptr_t) rel_ptr) + (uintptr_t)base_ptr);
+    }
+    return r;
+}
+
+void* nvb_rel(void *abs_ptr, void *base_ptr) {
+    void *r = NULL;
+
+    if (NULL != abs_ptr) {
+	r = (void *)(((uintptr_t) abs_ptr) - (uintptr_t)base_ptr);
+    }
+    return r;
+}
+
+
 }

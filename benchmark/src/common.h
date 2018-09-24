@@ -31,6 +31,10 @@
 
 namespace nvb {
 
+
+void* nvb_abs(void *rel_ptr, void *base_ptr);
+void* nvb_rel(void *abs_ptr, void *base_ptr);
+
 // for malloc, emulate object table through a concurrent hashmap
 #if defined(USE_MALLOC) || defined(USE_PMDK) || defined(USE_MAKALU)
 struct StringHashCompare {
@@ -67,29 +71,18 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
     static const char *path = "/mnt/pmfs/pmdk-test";
     static const char *layout_name = "bench";
     static const size_t pool_size = 1024 * 1024 * 1024; 
+    int retry = 0;
 
     while (NULL == pcp) {
-        pcp = pmemcto_open(path, layout_name);
-        
-        if (NULL != pcp) {
-            break;
-        }
-
-	if (EINVAL == errno) {
-	   // this is the sign of a corrupt file
-           (void) unlink(path);
-           break;
-        }
+	assert(retry++ < 10);
+        (void) unlink(path);
 
         pcp = pmemcto_create(path, layout_name, pool_size, 0600);
-
-	// no matter what, we're done
-	break;
     }
 
     return (PMEMctopool *)0;
 #elif USE_MAKALU
-    static const char *path="/mnt/pmem/makalu-test";
+    static const char *path="/mnt/pmfs/makalu-test";
     static const size_t pool_size = 1024 * 1024 * 1024;
     int is_pmem;
 
@@ -101,7 +94,6 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 
     pmem_curraddr = (char*) ((size_t) pmem_baseaddr + 3 * sizeof(intptr_t));
 
-    // TODO: should add some path for restart here?
     pmem_ret = MAK_start(&__nvm_region_allocator);
     assert(NULL != pmem_ret);
     
@@ -218,7 +210,7 @@ inline void free(void *ptr, void **link_ptr1=nullptr, void *target1=nullptr, voi
         }
     }
 #elif USE_MAKALU
-    MAK_free(ptr);
+    //MAK_free(ptr); - have to figure out the thread specific stuff
     if (link_ptr1) {
         *link_ptr1 = target1;
         if (link_ptr2) {
@@ -271,12 +263,9 @@ inline void* abs(void *rel_ptr) {
 #elif USE_NVM_MALLOC
     return nvm_abs(rel_ptr);
 #elif USE_PMDK
-    // TODO: this isn't right
-    assert(0);
-    return rel_ptr;
+    return nvb_abs(rel_ptr, pcp);
 #elif USE_MAKALU
-    assert(0);
-    return rel_ptr;
+    return nvb_abs(rel_ptr, pmem_baseaddr);
 #endif
 }
 
@@ -286,13 +275,9 @@ inline void* rel(void *abs_ptr) {
 #elif USE_NVM_MALLOC
     return nvm_rel(abs_ptr);
 #elif USE_PMDK
-    // TODO: this isn't right
-    assert(0);
-    return abs_ptr;
+    return nvb_rel(abs_ptr, pcp);
 #elif USE_MAKALU
-    // TODO: this isn't right
-    assert(0);
-    return abs_ptr;
+    return nvb_rel(abs_ptr, pmem_baseaddr);
 #endif
 }
 
