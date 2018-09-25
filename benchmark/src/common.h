@@ -106,13 +106,9 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
     }
     assert(NULL != pop);
     pmemobj_alloc(pop, &root_oid, 64, 0, create_dynamic_block, NULL);
-extern PMEMoid root_oid;
-extern PMEMobjpool *pop;
-int create_dynamic_block(PMEMobjpool *pop, void *ptr, void *arg);extern PMEMoid root_oid;
-extern PMEMobjpool *pop;
-int create_dynamic_block(PMEMobjpool *pop, void *ptr, void *arg);
-
+    assert(!OID_IS_NULL(root_oid));
     return (void *)0;
+
 #elif USE_MAKALU
     static const char *path="/mnt/pmfs/makalu-test";
     static const size_t pool_size = 1024 * 1024 * 1024;
@@ -318,6 +314,11 @@ inline void teardown() {
 #elif USE_PMDK
     pmemcto_close(pcp);
     pcp = NULL;
+#elif USE_PMOBJ
+    pmemobj_free(&root_oid);
+    root_oid = OID_NULL;
+    pmemobj_close(pop);
+    pop = NULL;
 #elif USE_MAKALU
     MAK_close();
     pmem_unmap(pmem_baseaddr, pmem_size);
