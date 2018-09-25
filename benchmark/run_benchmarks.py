@@ -23,6 +23,12 @@ BENCHTITLES = {"alloc_free": "Allocate and Free",
                "linkedlist": "Linked List Creation",
                "recovery": "nvm\_malloc Internal Recovery"}
 
+marker_index = 0
+def getNextMarker():
+    global marker_index
+    markers = ['o', 's', 'P', 'H', '+', 'X', 'D', '10', '|', '1', '3', '4', '5', '6', '7']
+    return markers[marker_index++]
+
 def getCacheFileName(binary, args, with_jemalloc):
     return os.path.join(os.getcwd(), "cached", "%s_%d_%d_%d_%d_%s" % (binary,
                                                                       args["threads_min"],
@@ -86,37 +92,37 @@ def plotBenchmark(benchname, args):
 
     # run standard nvm_malloc
     print "Running '%s' for nvm_malloc" % benchname
-    plt.plot(plotX, runBenchmark("bench_%s_nvm" % benchname, args), label="nvm\_malloc", ls="-", marker="o", color="black")
+    plt.plot(plotX, runBenchmark("bench_%s_nvm" % benchname, args), label="nvm\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with CLFLUSHOPT
     if args["has_clflushopt"]:
         print "Running '%s' for nvm_malloc with CLFLUSHOPT" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_nvm_clflushopt" % benchname, args), label="nvm\_malloc with CLFLUSHOPT", ls="-", marker="s", color="black")
+        plt.plot(plotX, runBenchmark("bench_%s_nvm_clflushopt" % benchname, args), label="nvm\_malloc with CLFLUSHOPT", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with CLWB
     if args["has_clwb"]:
         print "Running '%s' for nvm_malloc with CLWB" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_nvm_clwb" % benchname, args), label="nvm\_malloc with CLWB", ls="-", marker="v", color="black")
+        plt.plot(plotX, runBenchmark("bench_%s_nvm_clwb" % benchname, args), label="nvm\_malloc with CLWB", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with fences disables
     if args["with_nofence"]:
         print "Running '%s' for nvm_malloc without fences" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_nvm_nofence" % benchname, args), label="nvm\_malloc no fences", ls="-", marker="^", color="black")
+        plt.plot(plotX, runBenchmark("bench_%s_nvm_nofence" % benchname, args), label="nvm\_malloc no fences", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with flushes disabled
     if args["with_noflush"]:
         print "Running '%s' for nvm_malloc without flushes" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_nvm_noflush" % benchname, args), label="nvm\_malloc no flushes", ls="-", marker="+", color="black")
+        plt.plot(plotX, runBenchmark("bench_%s_nvm_noflush" % benchname, args), label="nvm\_malloc no flushes", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with both fences and flushes disabled
     if args["with_none"]:
         print "Running '%s' for nvm_malloc without flushes or fences" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_nvm_none" % benchname, args), label="nvm\_malloc no fences/flushes", ls="-", marker="x", color="black")
+        plt.plot(plotX, runBenchmark("bench_%s_nvm_none" % benchname, args), label="nvm\_malloc no fences/flushes", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run pmdk_malloc
     if args["with_pmdk"]:
         print "Running '%s' for pmdk_malloc" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_pmdk" % benchname, args), label="pmdk\_malloc", ls="-", marker="*", color="black")
+        plt.plot(plotX, runBenchmark("bench_%s_pmdk" % benchname, args), label="pmdk\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run pmobj_malloc
     if args["with_pmobj"]:
@@ -126,7 +132,7 @@ def plotBenchmark(benchname, args):
     # if selected, run makalu_malloc
     if args["with_makalu"]:
         print "Running '%s' for makalu_malloc" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_makalu" % benchname, args), label="makalu\_malloc", ls="-", marker=">", color="black")
+        plt.plot(plotX, runBenchmark("bench_%s_makalu" % benchname, args), label="makalu\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     plt.legend(loc='upper left', prop={'size':10})
     plt.legend(loc='upper left', prop={'size':10})
