@@ -118,6 +118,11 @@ def plotBenchmark(benchname, args):
         print "Running '%s' for pmdk_malloc" % benchname
         plt.plot(plotX, runBenchmark("bench_%s_pmdk" % benchname, args), label="pmdk\_malloc", ls="-", marker="*", color="black")
 
+    # if selected, run pmobj_malloc
+    if args["with_pmobj"]:
+        print "Running '%s' for pmobj_malloc" % benchname
+        plt.plot(plotX, runBenchmark("bench_%s_pmobj" % benchname, args), label="pmobj\_malloc", ls="-", marker="*", color="black")
+
     # if selected, run makalu_malloc
     if args["with_makalu"]:
         print "Running '%s' for makalu_malloc" % benchname
@@ -163,6 +168,7 @@ if __name__ == "__main__":
     parser.add_argument("--with-none", action="store_true", help="include a run with disabled fences and flushes",default=True)
     parser.add_argument("--ignore-cached", action="store_true")
     parser.add_argument("--with-pmdk", action="store_true", default=True)
+    parser.add_argument("--with-pmobj", action="store_true", default=True)
     parser.add_argument("--with-makalu", action="store_true")
     args = vars(parser.parse_args())
     if args["payload_max"] < args["payload_min"]:
