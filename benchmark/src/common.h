@@ -20,6 +20,12 @@
 #include <assert.h>
 #endif // USE_PMDK
 
+#ifdef USE_PMOBJ
+#include <libpmemobj.h>
+#include <libpmem.h>
+#include <assert.h>
+#endif // USE_PMOBJ
+
 #ifdef USE_MAKALU
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -36,7 +42,7 @@ void* nvb_abs(void *rel_ptr, void *base_ptr);
 void* nvb_rel(void *abs_ptr, void *base_ptr);
 
 // for malloc, emulate object table through a concurrent hashmap
-#if defined(USE_MALLOC) || defined(USE_PMDK) || defined(USE_MAKALU)
+#if defined(USE_MALLOC) || defined(USE_PMDK) || defined(USE_PMOBJ) || defined(USE_MAKALU)
 struct StringHashCompare {
     static size_t hash(const std::string x) {
         size_t h = 0;
@@ -51,6 +57,12 @@ struct StringHashCompare {
 typedef tbb::concurrent_hash_map<std::string, void*, StringHashCompare> object_table_t;
 extern object_table_t _object_table;
 #endif // USE_MALLOC or USE_PMDK
+
+#if defined(USE_PMOBJ)
+extern PMEMoid root_oid;
+extern PMEMobjpool *pop;
+int create_dynamic_block(PMEMobjpool *pop, void *ptr, void *arg);
+#endif // USE_PMOBJ
 
 #if USE_PMDK
     extern PMEMctopool *pcp;
@@ -68,7 +80,7 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 #elif USE_NVM_MALLOC
     return nvm_initialize(workspace_path.c_str(), recover_if_possible);
 #elif USE_PMDK
-    static const char *path = "/mnt/pmfs/pmdk-test";
+    static const char *path = "/mnt/pmfs/pmcto-test";
     static const char *layout_name = "bench";
     static const size_t pool_size = 1024 * 1024 * 1024; 
     int retry = 0;
@@ -79,8 +91,28 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 
         pcp = pmemcto_create(path, layout_name, pool_size, 0600);
     }
-
     return (PMEMctopool *)0;
+#elif USE_PMOBJ
+    static const char *path = "/mnt/pmfs/pmobj-test";
+    static const char *layout_name = "bench";
+    static const size_t pool_size = 1024 * 1024 * 1024; 
+    int retry = 0;
+
+    while (NULL == pop) {
+    	assert(retry++ < 10);
+        (void) unlink(path);
+
+        pop = pmemobj_create(path, layout_name, pool_size, 0600);
+    }
+    assert(NULL != pop);
+    pmemobj_alloc(pop, &root_oid, 64, 0, create_dynamic_block, NULL);
+extern PMEMoid root_oid;
+extern PMEMobjpool *pop;
+int create_dynamic_block(PMEMobjpool *pop, void *ptr, void *arg);extern PMEMoid root_oid;
+extern PMEMobjpool *pop;
+int create_dynamic_block(PMEMobjpool *pop, void *ptr, void *arg);
+
+    return (void *)0;
 #elif USE_MAKALU
     static const char *path="/mnt/pmfs/makalu-test";
     static const size_t pool_size = 1024 * 1024 * 1024;
@@ -110,6 +142,16 @@ inline void* reserve(uint64_t n_bytes) {
 #elif USE_PMDK
     assert(pcp != NULL);
     return pmemcto_malloc(pcp, (size_t) n_bytes);
+#elif USE_PMOBJ
+    PMEMoid oid;
+    void *p = NULL;
+
+    assert(pop != NULL);
+    pmemobj_alloc(pop, &oid, 64, 0, create_dynamic_block, NULL);
+    assert(!OID_IS_NULL(oid));
+    p = pmemobj_direct(oid);
+    assert(NULL != p);
+    return p;
 #elif USE_MAKALU
     return MAK_malloc(n_bytes);
 #endif
@@ -126,6 +168,8 @@ inline void* reserve_id(const std::string id, uint64_t n_bytes) {
     void *ptr = pmemcto_malloc(pcp, (size_t) n_bytes);
     _object_table.insert({id, ptr});
     return ptr;
+#elif USE_PMOBJ
+    assert(0); // not implemented
 #elif USE_MAKALU
     void *ptr = MAK_malloc((size_t) n_bytes);
     _object_table.insert({id, ptr});
@@ -143,14 +187,7 @@ inline void activate(void *ptr, void **link_ptr1=nullptr, void *target1=nullptr,
     }
 #elif USE_NVM_MALLOC
     nvm_activate(ptr, link_ptr1, target1, link_ptr2, target2);
-#elif USE_PMDK
-    if (link_ptr1) {
-        *link_ptr1 = target1;
-        if (link_ptr2) {
-            *link_ptr2 = target2;
-        }
-    }
-#elif USE_MAKALU
+#else
     if (link_ptr1) {
         *link_ptr1 = target1;
         if (link_ptr2) {
@@ -161,29 +198,17 @@ inline void activate(void *ptr, void **link_ptr1=nullptr, void *target1=nullptr,
 }
 
 inline void activate_id(const std::string id) {
-#ifdef USE_MALLOC
-    // nothing to be done here
-#elif USE_NVM_MALLOC
+#if USE_NVM_MALLOC
     nvm_activate_id(id.c_str());
-#elif USE_PMDK
-    // nothing to be done here
-#elif USE_MAKALU
+#else
     // nothing to be done here
 #endif
 }
 
 inline void* get_id(const std::string id) {
-#ifdef USE_MALLOC
-    object_table_t::const_accessor acc;
-    _object_table.find(acc, id);
-    return acc->second;
-#elif USE_NVM_MALLOC
+#if USE_NVM_MALLOC
     return nvm_get_id(id.c_str());
-#elif USE_PMDK
-    object_table_t::const_accessor acc;
-    _object_table.find(acc, id);
-    return acc->second;
-#elif USE_MAKALU
+#else
     object_table_t::const_accessor acc;
     _object_table.find(acc, id);
     return acc->second;
@@ -191,26 +216,22 @@ inline void* get_id(const std::string id) {
 }
 
 inline void free(void *ptr, void **link_ptr1=nullptr, void *target1=nullptr, void **link_ptr2=nullptr, void *target2=nullptr) {
+#ifdef USE_NVM_MALLOC
+    nvm_free(ptr, link_ptr1, target1, link_ptr2, target2);
+#else
 #ifdef USE_MALLOC
     ::free(ptr);
-    if (link_ptr1) {
-        *link_ptr1 = target1;
-        if (link_ptr2) {
-            *link_ptr2 = target2;
-        }
-    }
-#elif USE_NVM_MALLOC
-    nvm_free(ptr, link_ptr1, target1, link_ptr2, target2);
-#elif USE_PMDK
+#endif // USE_MALLOC
+#if USE_PMDK
     pmemcto_free(pcp, ptr);
-    if (link_ptr1) {
-        *link_ptr1 = target1;
-        if (link_ptr2) {
-            *link_ptr2 = target2;
-        }
-    }
-#elif USE_MAKALU
+#endif
+#if USE_PMOBJ
+    PMEMoid oid = pmemobj_oid(ptr);
+    pmemobj_free(&oid);
+#endif
+#if USE_MAKALU
     //MAK_free(ptr); - have to figure out the thread specific stuff
+#endif
     if (link_ptr1) {
         *link_ptr1 = target1;
         if (link_ptr2) {
@@ -221,27 +242,31 @@ inline void free(void *ptr, void **link_ptr1=nullptr, void *target1=nullptr, voi
 }
 
 inline void free_id(const std::string id) {
-#ifdef USE_MALLOC
-    object_table_t::const_accessor acc;
-    _object_table.find(acc, id);
-    void *ptr = acc->second;
-    ::free(ptr);
-    _object_table.erase(acc);
-#elif USE_NVM_MALLOC
+#ifdef USE_NVM_MALLOC
     nvm_free_id(id.c_str());
-#elif USE_PMDK
+#else
     object_table_t::const_accessor acc;
     _object_table.find(acc, id);
     void *ptr = acc->second;
+
+#ifdef USE_MALLOC
+    ::free(ptr);
+#endif // USE_MALLOC
+
+#ifdef USE_PMDK
     pmemcto_free(pcp, ptr);
-    _object_table.erase(acc);
-#elif USE_MAKALU
-    object_table_t::const_accessor acc;
-    _object_table.find(acc, id);
-    void *ptr = acc->second;
+#endif // USE_PMDK
+
+#ifdef USE_PMOBJ
+    PMEMoid oid = pmemobj_oid(ptr);
+    pmemobj_free(&oid);
+#endif // USE_PMOBJ
+
+#ifdef USE_MAKALU
     MAK_free(ptr);
-    _object_table.erase(acc);
 #endif
+    _object_table.erase(acc);
+#endif // else USE_NVM_ALLOC
 }
 
 inline void persist(const void *ptr, uint64_t n_bytes) {
@@ -249,10 +274,7 @@ inline void persist(const void *ptr, uint64_t n_bytes) {
     // nothing to be done here
 #elif USE_NVM_MALLOC
     nvm_persist(ptr, n_bytes);
-#elif USE_PMDK
-    pmem_persist(ptr, n_bytes);
-#elif USE_MAKALU
-    // TODO: verify this is correct
+#else
     pmem_persist(ptr, n_bytes);
 #endif
 }
@@ -264,6 +286,12 @@ inline void* abs(void *rel_ptr) {
     return nvm_abs(rel_ptr);
 #elif USE_PMDK
     return nvb_abs(rel_ptr, pcp);
+#elif USE_PMOBJ
+    PMEMoid oid;
+    assert(root_oid.pool_uuid_lo != 0);
+    oid.pool_uuid_lo = root_oid.pool_uuid_lo;
+    oid.off = (uint64_t)rel_ptr;
+    return pmemobj_direct(oid);
 #elif USE_MAKALU
     return nvb_abs(rel_ptr, pmem_baseaddr);
 #endif
@@ -276,6 +304,9 @@ inline void* rel(void *abs_ptr) {
     return nvm_rel(abs_ptr);
 #elif USE_PMDK
     return nvb_rel(abs_ptr, pcp);
+#elif USE_PMOBJ
+    PMEMoid oid = pmemobj_oid(abs_ptr);
+    return (void *) oid.off;
 #elif USE_MAKALU
     return nvb_rel(abs_ptr, pmem_baseaddr);
 #endif

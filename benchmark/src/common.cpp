@@ -10,6 +10,16 @@ object_table_t _object_table;
 PMEMctopool *pcp;
 #endif
 
+#if defined(USE_PMOBJ)
+PMEMoid root_oid;
+PMEMobjpool *pop;
+int create_dynamic_block(PMEMobjpool *pop, void *ptr, void *arg)
+{
+    // no initialization
+    return 0;
+}
+#endif
+
 #if defined(USE_MAKALU)
 void *pmem_baseaddr;
 void *pmem_curraddr;
