@@ -26,7 +26,7 @@ BENCHTITLES = {"alloc_free": "Allocate and Free",
 marker_index = 0
 def getNextMarker():
     global marker_index
-    markers = ['o', 's', 'P', 'H', '+', 'X', 'D', 10, '|', 1, 3, 4, 5, 6, 7]
+    markers = ['o', 's', 'P', 'H', '+', 'X', 'D', 10, '|', 'x', 1, 3, 4, 5, 6, 7]
     m = markers[marker_index]
     marker_index += 1
     return m
@@ -75,6 +75,8 @@ def runRecovery(maxIterations, args):
     return result
 
 def plotBenchmark(benchname, args):
+    global marker_index
+    marker_index = 0 # reset marker index
     fig = plt.figure()
     fig.set_size_inches(5.31, 3.54)
     plt.title(BENCHTITLES[benchname])
