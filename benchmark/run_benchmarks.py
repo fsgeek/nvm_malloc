@@ -26,8 +26,10 @@ BENCHTITLES = {"alloc_free": "Allocate and Free",
 marker_index = 0
 def getNextMarker():
     global marker_index
-    markers = ['o', 's', 'P', 'H', '+', 'X', 'D', '10', '|', '1', '3', '4', '5', '6', '7']
-    return markers[marker_index++]
+    markers = ['o', 's', 'P', 'H', '+', 'X', 'D', 10, '|', 1, 3, 4, 5, 6, 7]
+    m = markers[marker_index]
+    marker_index += 1
+    return m
 
 def getCacheFileName(binary, args, with_jemalloc):
     return os.path.join(os.getcwd(), "cached", "%s_%d_%d_%d_%d_%s" % (binary,
