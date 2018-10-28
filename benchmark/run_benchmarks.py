@@ -78,7 +78,7 @@ def plotBenchmark(benchname, args):
     global marker_index
     marker_index = 0 # reset marker index
     fig = plt.figure()
-    fig.set_size_inches(20.0, 13.0)
+    fig.set_size_inches(5.31, 3.54)
     plt.title(BENCHTITLES[benchname])
     plt.ylabel("Time in $ms$")
     plt.xlabel("Parallel Threads")
@@ -125,8 +125,8 @@ def plotBenchmark(benchname, args):
 
     # if selected, run pmdk_malloc
     if args["with_pmdk"]:
-        print "Running '%s' for pmcto_malloc" % benchname
-        plt.plot(plotX, runBenchmark("bench_%s_pmdk" % benchname, args), label="pmcto\_malloc", ls="-", marker=getNextMarker(), color="black")
+        print "Running '%s' for pmdk_malloc" % benchname
+        plt.plot(plotX, runBenchmark("bench_%s_pmdk" % benchname, args), label="pmdk\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run pmobj_malloc
     if args["with_pmobj"]:
@@ -170,8 +170,8 @@ if __name__ == "__main__":
     parser.add_argument("--threads-max", type=int, default=23)
     parser.add_argument("--payload-min", type=int, default=64)
     parser.add_argument("--payload-max", type=int, default=64)
-    parser.add_argument("--has-clflushopt", action="store_true", default=True)
-    parser.add_argument("--has-clwb", action="store_true")
+    parser.add_argument("--has-clflushopt", action="store_true")
+    parser.add_argument("--has-clwb", action="store_true", default=True)
     parser.add_argument("--with-jemalloc", action="store_true", help="include a run with jemalloc in the benchmark", default=True)
     parser.add_argument("--with-nofence", action="store_true", help="include a run with disabled fences")
     parser.add_argument("--with-noflush", action="store_true", help="include a run with disabled flushes")
