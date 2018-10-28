@@ -131,6 +131,7 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 }
 
 inline void* reserve(uint64_t n_bytes) {
+    nbytes = ((nbytes + 63) & (~63)); // round up to nearest 64 bytes
 #ifdef USE_MALLOC
     return malloc(n_bytes);
 #elif USE_NVM_MALLOC
