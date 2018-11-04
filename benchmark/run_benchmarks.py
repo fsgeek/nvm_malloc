@@ -66,7 +66,8 @@ def runBenchmark(binary, args, with_jemalloc=False):
         return eval(open(cachefile).read())
     result = []
     for numThreads in range(args["threads_min"], args["threads_max"]+1):
-        result.append(runBenchmarkBinary(binary, [numThreads, args["payload_min"], args["payload_max"]], with_jemalloc, 
+        result.append(runBenchmarkBinary(binary, [numThreads, args["payload_min"], args["payload_max"], 
+                                         'node={}'.format(args["node"])], with_jemalloc, 
                                          node=args["node"], runs=args["number-of-runs"], miliseconds=True))
     open(cachefile, "w").write(str(result))
     return result
