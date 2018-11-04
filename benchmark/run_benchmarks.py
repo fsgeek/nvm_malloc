@@ -6,6 +6,9 @@ import matplotlib as mpl
 mpl.use("Agg")
 from pylab import *
 
+# global variables
+verbose = False
+
 # make plots look better
 plt.rcParams['text.latex.preamble']=[r"\usepackage{lmodern}"]
 params = {'text.usetex' : True,
@@ -39,19 +42,22 @@ def getCacheFileName(binary, args, with_jemalloc):
                                                                       args["payload_max"],
                                                                       "true" if with_jemalloc else "false"))
 
-def runBenchmarkBinary(binary, parameters, with_jemalloc, miliseconds=False):
-    procString = "hwloc-bind node:0 " + os.path.join(os.getcwd(), "build", binary) + " " + " ".join([str(p) for p in parameters])
+def runBenchmarkBinary(binary, parameters, with_jemalloc, node=0, runs=5, miliseconds=False):
+    procString = "hwloc-bind node:{} ".format(node) + os.path.join(os.getcwd(), "build", binary) + " " + " ".join([str(p) for p in parameters])
     if with_jemalloc:
         procString = "LD_PRELOAD=%s %s" % (JEMALLOC_PATH, procString)
     env = {"LD_LIBRARY_PATH": os.path.join(os.getcwd(), "..")}
     elapsed = 0.0
-    for i in range(5):
+    global verbose
+    if verbose: print("run {} {} times".format(procString, runs))
+    for i in range(runs):
         proc = subprocess.Popen(procString, shell=True, stdout=subprocess.PIPE, env=env)
-	data = proc.stdout.read()
+        data = proc.stdout.read()
         try:
-	    elapsed += float(data)/5
-	except ValueError:
+	        elapsed += float(data)
+        except ValueError:
             print('return {} from command {}'.format(data, procString))
+    elapsed /= float(runs)
     return elapsed/1000 if miliseconds else elapsed
 
 def runBenchmark(binary, args, with_jemalloc=False):
@@ -60,7 +66,8 @@ def runBenchmark(binary, args, with_jemalloc=False):
         return eval(open(cachefile).read())
     result = []
     for numThreads in range(args["threads_min"], args["threads_max"]+1):
-        result.append(runBenchmarkBinary(binary, [numThreads, args["payload_min"], args["payload_max"]], with_jemalloc, True))
+        result.append(runBenchmarkBinary(binary, [numThreads, args["payload_min"], args["payload_max"]], with_jemalloc, 
+                                         node=args["node"], runs=args["number-of-runs"], miliseconds=True))
     open(cachefile, "w").write(str(result))
     return result
 
@@ -74,11 +81,11 @@ def runRecovery(maxIterations, args):
     open(cachefile, "w").write(str(result))
     return result
 
-def plotBenchmark(benchname, args, size=(20.0, 13.0)):
+def plotBenchmark(benchname, args):
     global marker_index
     marker_index = 0 # reset marker index
     fig = plt.figure()
-    fig.set_size_inches(size[0], size[1])
+    fig.set_size_inches(args['plot_width'], args['plot_height'])
     plt.title(BENCHTITLES[benchname])
     plt.ylabel("Time in $ms$")
     plt.xlabel("Parallel Threads")
@@ -171,18 +178,26 @@ if __name__ == "__main__":
     parser.add_argument("--payload-min", type=int, default=64)
     parser.add_argument("--payload-max", type=int, default=64)
     parser.add_argument("--has-clflushopt", action="store_true", default=True)
-    parser.add_argument("--has-clwb", action="store_true")
+    parser.add_argument("--has-clwb", action="store_true", default=True)
     parser.add_argument("--with-jemalloc", action="store_true", help="include a run with jemalloc in the benchmark", default=True)
-    parser.add_argument("--with-nofence", action="store_true", help="include a run with disabled fences")
-    parser.add_argument("--with-noflush", action="store_true", help="include a run with disabled flushes")
+    parser.add_argument("--with-nofence", action="store_true", help="include a run with disabled fences", default=True)
+    parser.add_argument("--with-noflush", action="store_true", help="include a run with disabled flushes", default=True)
     parser.add_argument("--with-none", action="store_true", help="include a run with disabled fences and flushes",default=True)
     parser.add_argument("--ignore-cached", action="store_true")
     parser.add_argument("--with-pmdk", action="store_true", default=True)
     parser.add_argument("--with-pmobj", action="store_true", default=True)
     parser.add_argument("--with-makalu", action="store_true")
+    parser.add_argument("--verbose", action="store_true", default=False)
+    parser.add_argument("--node", type=int, default=0)
+    parser.add_argument("--number-of-runs", type=int, default=5)
+    parser.add_argument("--plot-width", type=float, default=20.0)
+    parser.add_argument("--plot-height", type=float, default=13.0)
     args = vars(parser.parse_args())
     if args["payload_max"] < args["payload_min"]:
         args["payload_max"] = args["payload_min"]
+
+    if 'verbose' in args:
+        global verbose = args["verbose"]
 
     # make sure the cache and plot folders exists
     if not os.path.isdir("cached"):
