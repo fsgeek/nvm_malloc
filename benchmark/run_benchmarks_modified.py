@@ -31,8 +31,8 @@ def getCacheFileName(binary, args, with_jemalloc):
                                                                       args["payload_max"],
                                                                       "true" if with_jemalloc else "false"))
 
-def runBenchmarkBinary(binary, parameters, with_jemalloc, miliseconds=False):
-    procString = "hwloc-bind node:1 " + os.path.join(os.getcwd(), "build", binary) + " " + " ".join([str(p) for p in parameters])
+def runBenchmarkBinary(binary, parameters, with_jemalloc, node=0, miliseconds=False):
+    procString = "hwloc-bind node:{} ".format(node) + os.path.join(os.getcwd(), "build", binary) + " " + " ".join([str(p) for p in parameters])
     if with_jemalloc:
         procString = "LD_PRELOAD=%s %s" % (JEMALLOC_PATH, procString)
     env = {"LD_LIBRARY_PATH": os.path.join(os.getcwd(), "..")}

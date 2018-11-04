@@ -74,11 +74,11 @@ def runRecovery(maxIterations, args):
     open(cachefile, "w").write(str(result))
     return result
 
-def plotBenchmark(benchname, args):
+def plotBenchmark(benchname, args, size=(20.0, 13.0)):
     global marker_index
     marker_index = 0 # reset marker index
     fig = plt.figure()
-    fig.set_size_inches(20.0, 13.0)
+    fig.set_size_inches(size[0], size[1])
     plt.title(BENCHTITLES[benchname])
     plt.ylabel("Time in $ms$")
     plt.xlabel("Parallel Threads")
