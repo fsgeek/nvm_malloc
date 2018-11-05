@@ -66,9 +66,8 @@ def runBenchmark(binary, args, with_jemalloc=False):
         return eval(open(cachefile).read())
     result = []
     for numThreads in range(args["threads_min"], args["threads_max"]+1):
-        result.append(runBenchmarkBinary(binary, [numThreads, args["payload_min"], args["payload_max"], 
-                                         'node={}'.format(args["node"])], with_jemalloc, 
-                                         node=args["node"], runs=args["number-of-runs"], miliseconds=True))
+        result.append(runBenchmarkBinary(binary, [numThreads, args["payload_min"], args["payload_max"]], 
+                                         with_jemalloc, node=args["node"], runs=args["number_of_runs"], miliseconds=True))
     open(cachefile, "w").write(str(result))
     return result
 
@@ -198,7 +197,8 @@ if __name__ == "__main__":
         args["payload_max"] = args["payload_min"]
 
     if 'verbose' in args:
-        global verbose = args["verbose"]
+        global verbose 
+        verbose = args["verbose"]
 
     # make sure the cache and plot folders exists
     if not os.path.isdir("cached"):
