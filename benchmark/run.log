@@ -1,2 +1,0 @@
-/usr/lib64/python2.7/site-packages/matplotlib/font_manager.py:1331: UserWarning: findfont: Font family [u'lmodern'] not found. Falling back to DejaVu Sans
-  (prop.get_family(), self.defaultFamily[fontext]))
