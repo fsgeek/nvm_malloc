@@ -145,8 +145,8 @@ def plotBenchmark(benchname, args):
         print "Running '%s' for makalu_malloc" % benchname
         plt.plot(plotX, runBenchmark("bench_%s_makalu" % benchname, args), label="makalu\_malloc", ls="-", marker=getNextMarker(), color="black")
 
-    plt.legend(loc='upper left', prop={'size':10})
-    plt.legend(loc='upper left', prop={'size':10})
+    plt.legend(loc='upper left', prop={'size':12})
+    plt.legend(loc='upper left', prop={'size':12})
     plt.savefig(os.path.join(os.getcwd(), "plots", "%s.pdf" % benchname), dpi=1000, bbox_inches="tight")
     plt.close()
 
@@ -192,6 +192,8 @@ if __name__ == "__main__":
     parser.add_argument("--number-of-runs", type=int, default=5)
     parser.add_argument("--plot-width", type=float, default=20.0)
     parser.add_argument("--plot-height", type=float, default=13.0)
+    parser.add_argument("--cache-dir", type=str, default='cached')
+    parser.add_argument("--plot-dir", type=str, default='plots')
     args = vars(parser.parse_args())
     if args["payload_max"] < args["payload_min"]:
         args["payload_max"] = args["payload_min"]
@@ -201,10 +203,10 @@ if __name__ == "__main__":
         verbose = args["verbose"]
 
     # make sure the cache and plot folders exists
-    if not os.path.isdir("cached"):
-        os.mkdir("cached")
-    if not os.path.isdir("plots"):
-        os.mkdir("plots")
+    if not os.path.isdir(args["cache_dir"]):
+        os.mkdir(args["cache_dir"])
+    if not os.path.isdir(args["plot_dir"]):
+        os.mkdir(args["plot_dir"])
 
     # run regular benchmarks
     for benchmark in BENCHMARKS:
