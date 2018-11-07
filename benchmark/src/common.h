@@ -82,7 +82,7 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 #elif USE_PMDK
     static const char *path = "/mnt/pmfs/pmcto-test";
     static const char *layout_name = "bench";
-    static const size_t pool_size = 1024 * 1024 * 1024; 
+    static const size_t pool_size = (size_t)10 * 1024 * 1024 * 1024; 
     int retry = 0;
 
     while (NULL == pcp) {
@@ -131,7 +131,7 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 }
 
 inline void* reserve(uint64_t n_bytes) {
-    nbytes = ((nbytes + 63) & (~63)); // round up to nearest 64 bytes
+    n_bytes = ((n_bytes + 63) & (~63)); // round up to nearest 64 bytes
 #ifdef USE_MALLOC
     return malloc(n_bytes);
 #elif USE_NVM_MALLOC

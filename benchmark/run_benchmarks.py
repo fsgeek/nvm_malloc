@@ -55,8 +55,8 @@ def runBenchmarkBinary(binary, parameters, with_jemalloc, node=0, runs=5, milise
         data = proc.stdout.read()
         try:
 	        elapsed += float(data)
-        except ValueError:
-            print('return {} from command {}'.format(data, procString))
+        except ValueError as e:
+            print('return value {} data {} from command {} exception {}'.format(proc.returncode, data, procString, e))
     elapsed /= float(runs)
     return elapsed/1000 if miliseconds else elapsed
 
