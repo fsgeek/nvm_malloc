@@ -1,0 +1,29 @@
+CXX ?= g++
+CXXFLAGS := -std=c++11 -Wall -I.
+debug:   CXXFLAGS += -O0 -ggdb
+release: CXXFLAGS += -O3
+LDFLAGS := -L.. -ltbb -lpthread
+
+# SRCDIR := 
+BUILDDIR := build
+BINARIES := malloc_benchmark
+TARGETS := $(addprefix $(BUILDDIR)/, $(BINARIES))
+
+all: release
+
+release: $(TARGETS)
+
+debug: $(TARGETS)
+
+%.o : %.cpp
+	$(CXX) -o $@ $(CXXFLAGS) $<
+
+
+$(BUILDDIR)/%: malloc_benchmark.cpp
+	@mkdir -p $(BUILDDIR)
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS)
+
+clean:
+	@rm -rf $(BUILDDIR)
+
+.PHONY: clean
