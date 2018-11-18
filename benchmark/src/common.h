@@ -95,7 +95,7 @@ inline void* initialize(const std::string workspace_path, int recover_if_possibl
 #elif USE_PMOBJ
     static const char *path = "/mnt/pmfs/pmobj-test";
     static const char *layout_name = "bench";
-    static const size_t pool_size = 1024 * 1024 * 1024; 
+    static const size_t pool_size = (size_t)10 * 1024 * 1024 * 1024; 
     int retry = 0;
 
     while (NULL == pop) {
