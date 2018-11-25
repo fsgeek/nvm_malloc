@@ -12,7 +12,7 @@ verbose = False
 # make plots look better
 plt.rcParams['text.latex.preamble']=[r"\usepackage{lmodern}"]
 params = {'text.usetex' : True,
-          'font.size' : 11,
+          'font.size' : 24,
           'font.family' : 'lmodern',
           'text.latex.unicode': True,
           }
@@ -145,8 +145,8 @@ def plotBenchmark(benchname, args):
         print "Running '%s' for makalu_malloc" % benchname
         plt.plot(plotX, runBenchmark("bench_%s_makalu" % benchname, args), label="makalu\_malloc", ls="-", marker=getNextMarker(), color="black")
 
-    plt.legend(loc='upper left', prop={'size':12})
-    plt.legend(loc='upper left', prop={'size':12})
+    plt.legend(loc='upper left', prop={'size':24})
+    plt.legend(loc='upper left', prop={'size':24})
     plt.savefig(os.path.join(os.getcwd(), "plots", "%s.pdf" % benchname), dpi=1000, bbox_inches="tight")
     plt.close()
 
