@@ -9,6 +9,8 @@ BUILDDIR := build
 BINARIES := bench_fastalloc bench_linkedlist bench_recovery bench_alloc_free bench_alloc_free_alloc
 TARGETS := $(addprefix $(BUILDDIR)/, $(BINARIES))
 
+
+KISS_ALLOC_SOURCES := $(SRCDIR)/kiss_alloc.c $(SRCDIR)/cpu.c
 all: release
 
 release: $(TARGETS)
@@ -34,6 +36,7 @@ $(BUILDDIR)/%: $(SRCDIR)/%.cpp $(SRCDIR)/common.h $(SRCDIR)/common.cpp
 	$(CXX) $(CXXFLAGS) -DUSE_PMDK -o $@_pmdk $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
 	$(CXX) $(CXXFLAGS) -DUSE_PMOBJ -o $@_pmobj $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
 	$(CXX) $(CXXFLAGS) -DUSE_MAKALU -o $@_makalu $< $(SRCDIR)/common.cpp $(LDFLAGS) -lpmemcto -lpmem
+	#$(CXX) $(CXXFLAGS) -DUSE_KISS -o $@_kiss $< $(KISS_ALLOC_SOURCES) $(SRCDIR)/common.cpp $(LDFLAGS)
 
 clean:
 	@rm -rf $(BUILDDIR)
