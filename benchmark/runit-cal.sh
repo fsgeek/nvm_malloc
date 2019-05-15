@@ -14,7 +14,7 @@ do
       mkdir "size-"$i
       mkdir cached
       mkdir plots
-      echo python run_benchmarks.py --payload-min $i --payload-max $i --run-alloc-free-alloc --node 1 --verbose
+      python run_benchmarks.py --payload-min $i --payload-max $i --run-alloc-free-alloc --node 1 --verbose
       mv cached plots "size-"$i
       mv "size-"$i cal
     # do whatever on $i

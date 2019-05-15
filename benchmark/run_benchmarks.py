@@ -45,9 +45,11 @@ def getCacheFileName(binary, args, with_jemalloc):
 
 def runBenchmarkBinary(binary, parameters, with_jemalloc, node=0, runs=5, miliseconds=False):
     procString = "hwloc-bind node:{} ".format(node) + os.path.join(os.getcwd(), "build", binary) + " " + " ".join([str(p) for p in parameters])
+    env = os.environ.copy()
     if with_jemalloc:
-        procString = "LD_PRELOAD=%s %s" % (JEMALLOC_PATH, procString)
-    env = {"LD_LIBRARY_PATH": os.path.join(os.getcwd(), "..")}
+        env['LD_PRELOAD'] = JEMALLOC_PATH
+	env['VMMALLOC_POOL_SIZE']=str(64*1024*1024*1024)
+        env['VMMALLOC_POOL_DIR']="/mnt/pmem7/fsgeek"
     elapsed = 0.0
     global verbose
     if verbose: print("run {} {} times".format(procString, runs))
@@ -103,8 +105,8 @@ def plotBenchmark(benchname, args):
         plt.plot(plotX, runBenchmark("bench_%s" % benchname, args, True), label="jemalloc", ls=":", color="black")
 
     # run standard nvm_malloc
-    print("Running '{}' for nvm_malloc".format(benchname))
-    plt.plot(plotX, runBenchmark("bench_%s_nvm" % benchname, args), label="nvm\_malloc", ls="-", marker=getNextMarker(), color="black")
+    #print("Running '{}' for nvm_malloc".format(benchname))
+    #plt.plot(plotX, runBenchmark("bench_%s_nvm" % benchname, args), label="nvm\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with CLFLUSHOPT
     if args["has_clflushopt"]:
@@ -178,15 +180,15 @@ if __name__ == "__main__":
     parser.add_argument("--threads-max", type=int, default=23)
     parser.add_argument("--payload-min", type=int, default=64)
     parser.add_argument("--payload-max", type=int, default=64)
-    parser.add_argument("--has-clflushopt", action="store_true", default=True)
-    parser.add_argument("--has-clwb", action="store_true", default=True)
+    parser.add_argument("--has-clflushopt", action="store_true", default=False)
+    parser.add_argument("--has-clwb", action="store_true", default=False)
     parser.add_argument("--with-jemalloc", action="store_true", help="include a run with jemalloc in the benchmark", default=True)
-    parser.add_argument("--with-nofence", action="store_true", help="include a run with disabled fences", default=True)
-    parser.add_argument("--with-noflush", action="store_true", help="include a run with disabled flushes", default=True)
-    parser.add_argument("--with-none", action="store_true", help="include a run with disabled fences and flushes",default=True)
+    parser.add_argument("--with-nofence", action="store_true", help="include a run with disabled fences", default=False)
+    parser.add_argument("--with-noflush", action="store_true", help="include a run with disabled flushes", default=False)
+    parser.add_argument("--with-none", action="store_true", help="include a run with disabled fences and flushes",default=False)
     parser.add_argument("--ignore-cached", action="store_true")
-    parser.add_argument("--with-pmdk", action="store_true", default=True)
-    parser.add_argument("--with-pmobj", action="store_true", default=True)
+    parser.add_argument("--with-pmdk", action="store_true", default=False)
+    parser.add_argument("--with-pmobj", action="store_true", default=False)
     parser.add_argument("--with-makalu", action="store_true")
     parser.add_argument("--verbose", action="store_true", default=False)
     parser.add_argument("--node", type=int, default=0)
