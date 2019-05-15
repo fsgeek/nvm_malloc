@@ -7,7 +7,7 @@ mpl.use("Agg")
 from pylab import *
 
 # global variables
-verbose = False
+#verbose = False
 
 # make plots look better
 plt.rcParams['text.latex.preamble']=[r"\usepackage{lmodern}"]
@@ -18,7 +18,8 @@ params = {'text.usetex' : True,
           }
 plt.rcParams.update(params)
 
-JEMALLOC_PATH = "/usr/local/lib/libjemalloc.so"
+#JEMALLOC_PATH = "/usr/local/lib/libjemalloc.so"
+JEMALLOC_PATH = "libvmmalloc.so.1"
 BENCHMARKS = ["alloc_free", "alloc_free_alloc", "fastalloc", "linkedlist"]
 BENCHTITLES = {"alloc_free": "Allocate and Free",
                "alloc_free_alloc": "Allocate, Free and Allocate",
@@ -93,56 +94,56 @@ def plotBenchmark(benchname, args):
     plotX = arange(1, args["threads_max"]+1)
 
     # default allocator
-    print "Running '%s' for default malloc" % benchname
+    print("Running '{}' for default malloc".format(benchname))
     plt.plot(plotX, runBenchmark("bench_%s" % benchname, args), label="default malloc", ls="--", color="black")
 
     # if selected, run with jemalloc
     if args["with_jemalloc"]:
-        print "Running '%s' for jemalloc" % benchname
+        print("Running '{}' for jemalloc".format(benchname))
         plt.plot(plotX, runBenchmark("bench_%s" % benchname, args, True), label="jemalloc", ls=":", color="black")
 
     # run standard nvm_malloc
-    print "Running '%s' for nvm_malloc" % benchname
+    print("Running '{}' for nvm_malloc".format(benchname))
     plt.plot(plotX, runBenchmark("bench_%s_nvm" % benchname, args), label="nvm\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with CLFLUSHOPT
     if args["has_clflushopt"]:
-        print "Running '%s' for nvm_malloc with CLFLUSHOPT" % benchname
+        print("Running '{}' for nvm_malloc with CLFLUSHOPT".format(benchname))
         plt.plot(plotX, runBenchmark("bench_%s_nvm_clflushopt" % benchname, args), label="nvm\_malloc with CLFLUSHOPT", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with CLWB
     if args["has_clwb"]:
-        print "Running '%s' for nvm_malloc with CLWB" % benchname
+        print( "Running '%s' for nvm_malloc with CLWB" % benchname)
         plt.plot(plotX, runBenchmark("bench_%s_nvm_clwb" % benchname, args), label="nvm\_malloc with CLWB", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with fences disables
     if args["with_nofence"]:
-        print "Running '%s' for nvm_malloc without fences" % benchname
+        print( "Running '%s' for nvm_malloc without fences" % benchname)
         plt.plot(plotX, runBenchmark("bench_%s_nvm_nofence" % benchname, args), label="nvm\_malloc no fences", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with flushes disabled
     if args["with_noflush"]:
-        print "Running '%s' for nvm_malloc without flushes" % benchname
+        print( "Running '%s' for nvm_malloc without flushes" % benchname)
         plt.plot(plotX, runBenchmark("bench_%s_nvm_noflush" % benchname, args), label="nvm\_malloc no flushes", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run nvm_malloc with both fences and flushes disabled
     if args["with_none"]:
-        print "Running '%s' for nvm_malloc without flushes or fences" % benchname
+        print( "Running '%s' for nvm_malloc without flushes or fences" % benchname)
         plt.plot(plotX, runBenchmark("bench_%s_nvm_none" % benchname, args), label="nvm\_malloc no fences/flushes", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run pmdk_malloc
     if args["with_pmdk"]:
-        print "Running '%s' for pmcto_malloc" % benchname
+        print("Running '%s' for pmcto_malloc" % benchname)
         plt.plot(plotX, runBenchmark("bench_%s_pmdk" % benchname, args), label="pmcto\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     # if selected, run pmobj_malloc
     if args["with_pmobj"]:
-        print "Running '%s' for pmobj_malloc" % benchname
+        print("Running '%s' for pmobj_malloc" % benchname)
         plt.plot(plotX, runBenchmark("bench_%s_pmobj" % benchname, args), label="pmobj\_malloc", ls="-", marker="*", color="black")
 
     # if selected, run makalu_malloc
     if args["with_makalu"]:
-        print "Running '%s' for makalu_malloc" % benchname
+        print("Running '%s' for makalu_malloc" % benchname)
         plt.plot(plotX, runBenchmark("bench_%s_makalu" % benchname, args), label="makalu\_malloc", ls="-", marker=getNextMarker(), color="black")
 
     plt.legend(loc='upper left', prop={'size':24})
@@ -159,7 +160,7 @@ def plotRecoveryBenchmark(args):
     maxIterations = 20
     plt.xlim(1, maxIterations)
     plotX = arange(1, maxIterations+1)
-    print "Running 'recovery' for nvm_malloc"
+    print( "Running 'recovery' for nvm_malloc")
     plt.plot(plotX, runRecovery(maxIterations, args), color="black", ls="-")
     #plt.legend(loc='upper left', prop={'size':10})
     plt.savefig(os.path.join(os.getcwd(), "plots", "recovery.pdf"), dpi=1000, bbox_inches="tight")
@@ -198,9 +199,11 @@ if __name__ == "__main__":
     if args["payload_max"] < args["payload_min"]:
         args["payload_max"] = args["payload_min"]
 
-    if 'verbose' in args:
-        global verbose 
-        verbose = args["verbose"]
+    global verbose
+    verbose = args['verbose']
+    #if 'verbose' in args:
+    #    global verbose 
+    #    verbose = args["verbose"]
 
     # make sure the cache and plot folders exists
     if not os.path.isdir(args["cache_dir"]):
